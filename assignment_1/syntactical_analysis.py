@@ -20,6 +20,36 @@ FIRST(<lexpr'>) = {'.'} ∪ FIRST(<lexpr>) = {'.', <var>, '(', 'λ'}
 FIRST(<pexpr>) = {<var>, '('} 
 '''
 
+class VariableLeaf:
+    def __init__(self, name):
+        self.name = name
+    
+    def __repr__(self):
+        return f'{self.name}'
+
+class LambdaNode:
+    def __init__(self, variable, right):
+        self.variable = variable
+        self.right = right
+
+    def __repr__(self):
+        return f'λ{self.variable}.({self.right})'
+
+class ApplicationNode:
+    def __init__(self, left, right):
+        self.left = left
+        self.right = right
+
+    def __repr__(self):
+        return f'({self.left} {self.right})'
+
+
+# The classes above will save the structure parsed.
+# Variables can ever only appear in leafs
+# Lamda Nodes connect the lambda variable 'λx.' to an expression (right).
+# Applications connect two expressions (left and right).
+
+
 def parse(TokenList):
 
     consume = TokenList.consume 
@@ -32,48 +62,57 @@ def parse(TokenList):
 
     FIRST = {
         'lexpr': ['variable', 'left_parenthesis', 'lambda'],        
-        # Obs: we don't need to fill the rest, but for larger grammar this could be useful.  
+        # Obs: we don't need to fill the rest, but for larger grammars this could be useful.  
         } 
 
     def expr(): 
-        lexpr()
-        expr_()
+        left = lexpr()
+        right = expr_()
+        if right is not None:
+            return ApplicationNode(left, right)
+        return left
 
     def expr_():
         if peek().type not in FIRST['lexpr']:
-            return
-        lexpr()
-        expr_()
+            return None
+        left = lexpr()
+        right = expr_()
+        if right is not None:
+            return ApplicationNode(left, right)
+        return left
 
     def lexpr():
         if peek().type == 'lambda':
             consume('lambda')
-            consume('variable')
-            lexpr_()
-            return
-        pexpr()
+            var = consume('variable') 
+            right = lexpr_()
+            return LambdaNode(var.name, right)
+        return pexpr()
 
     def lexpr_():
         if peek().type == 'period':
             consume('period')
-        lexpr()    
+        return lexpr()
     
     def pexpr():
         if peek().type == 'variable':
-            consume('variable')
-            return
+            var = consume('variable')
+            return VariableLeaf(var.name) 
         consume('left_parenthesis')
-        expr()
+        expression = expr()
         consume('right_parenthesis')
-
+        return expression
 
     # Scope variables are set, now we parse:
-    expr()
+    return expr()
 
 
 if __name__ == '__main__':
-    from lexical_analysis import lexer
 
-    for tokenized_line in lexer():
-        parse(tokenized_line)
+    import sys
+    from lexical_analysis import tokenize
 
+    for line in sys.stdin.readlines():
+        tokens = tokenize(line)
+        lambda_tree = parse(tokens)
+        print(lambda_tree)
