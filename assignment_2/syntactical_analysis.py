@@ -104,7 +104,11 @@ def parse(TokenList):
         return expression
 
     # Scope variables are set, now we parse:
-    return expr()
+    tree = expr()
+    if peek().type != 'None':
+        raise SyntaxError('Could not parse all input.')
+    return tree
+
 
 
 if __name__ == '__main__':

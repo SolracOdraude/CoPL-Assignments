@@ -54,8 +54,7 @@ if __name__ == '__main__':
     # Reading the first 'valid' line in file:
 
     for line in file_contents:
-        line = line.strip()
-        if not line:    # Empty line
+        if line.isspace():    # Empty line
             continue
         break
     else:

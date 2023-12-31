@@ -1,0 +1,13 @@
+(λ^A.x x) : A -> B
+(λx^A.x) : B -> A
+(λf^A->B.f(λx^A.x)) : (A->B)->B
+
+(\x x)
+(\x^A (x y))
+(x y)
+(\x^A y):(A->B)
+(\x^A x):(B -> B)
+
+(λx^A.(λy^(B->C).(λz^B.y(x z)))): A -> (B -> C)
+(λf^(A->B).(λg^A.f(g g))) : (A->B)->(A->B)
+
